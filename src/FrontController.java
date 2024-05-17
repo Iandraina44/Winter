@@ -1,4 +1,4 @@
-package controller;
+package mg.controller;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,8 +11,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import controller.*;
-import utils.*;
+import mg.controller.*;
+import mg.utils.*;
 
 public class FrontController extends HttpServlet {
     private static List<String> controllers;

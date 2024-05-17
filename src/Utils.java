@@ -1,11 +1,11 @@
-package utils;
+package mg.utils;
 
 import java.io.File;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
-import annotation.*;
-import controller.*;
+import mg.annotation.*;
+import mg.controller.*;
 
 public class Utils {
 
