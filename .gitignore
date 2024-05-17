@@ -2,6 +2,6 @@
 
 # Ignore compiled files
 *.class
-*.jar
-*.war
+Winter.jar
+bin/
 
