@@ -16,7 +16,7 @@ import utils.*;
 
 public class FrontController extends HttpServlet {
     private static List<String> controllers;
-    private static boolean isChecked;
+    private static boolean isChecked=false;
 
 
     @Override
@@ -30,21 +30,23 @@ public class FrontController extends HttpServlet {
     }
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+        throws ServletException, IOException {
         PrintWriter out = response.getWriter();
         StringBuffer url = request.getRequestURL();
         out.println("L'URL EST :" + url);
-        if(!FrontController.isChecked){
+        out.println(isChecked);
+        if(FrontController.isChecked==false){
             String packageToScan = this.getInitParameter("package_name");
+            out.println(packageToScan);
             try {
                 FrontController.controllers=Utils.getAllControllers(this,packageToScan);
                 FrontController.isChecked=true;
                 out.println("Premier et dernier scan");
+                out.print(controllers.size());
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        /* Printer tous les controllers */
         for (String class1 : controllers) {
             out.println(class1);
         }
