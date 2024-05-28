@@ -1,23 +1,25 @@
-package mg.utils;
+package mg.itu.prom16.utils;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import mg.annotation.*;
-import mg.controller.*;
+
+import jakarta.servlet.http.HttpServletRequest;
+import mg.itu.prom16.annotations.Controller;
+import mg.itu.prom16.annotations.GetMapping;
 
 public class Utils {
-
-    public static boolean isController(Class<?> c) {
+    boolean isController(Class<?> c) {
         return c.isAnnotationPresent(Controller.class);
     }
 
-
-    public static List<String> getAllControllers(FrontController frontcontroller,String packageName) throws Exception {
+    public List<String> getAllClassesStringAnnotation(String packageName,Class annotation) throws Exception {
         List<String> res=new ArrayList<String>();
         //répertoire racine du package
-        String path = frontcontroller.getClass().getClassLoader().getResource(packageName.replace('.', '/')).getPath();
+        String path = this.getClass().getClassLoader().getResource(packageName.replace('.', '/')).getPath();
         String decodedPath = URLDecoder.decode(path, "UTF-8");
         File packageDir = new File(decodedPath);
 
@@ -28,13 +30,38 @@ public class Utils {
                 if (file.isFile() && file.getName().endsWith(".class")) {
                     String className = packageName + "." + file.getName().replace(".class", "");
                     Class<?> classe = Class.forName(className);
-                    if (Utils.isController(classe)) {
-                        res.add(className);
+                    if (classe.isAnnotationPresent(annotation)) {
+                        res.add(classe.getName());
                     }
                 }
             }
         }
         return res;
 
-    }    
+    }
+    public HashMap<String,Mapping> scanControllersMethods(List<String> controllers) throws Exception{
+        HashMap<String,Mapping> res=new HashMap<>();
+        for (String c : controllers) {
+                Class classe=Class.forName(c);
+                /* Prendre toutes les méthodes de cette classe */
+                Method[] meths=classe.getDeclaredMethods();
+                for (Method method : meths) {
+                    if(method.isAnnotationPresent(GetMapping.class)){
+                        String url=method.getAnnotation(GetMapping.class).url();
+                        if(res.containsKey(url)){
+                            String existant=res.get(url).className+":"+res.get(url).methodName;
+                            String nouveau=classe.getName()+":"+method.getName();
+                            throw new Exception("L'url "+url+" est déja mappé sur "+existant+" et ne peut plus l'être sur "+nouveau);
+                        }
+                        /* Prendre l'annotation */
+                        res.put(url,new Mapping(c,method.getName()));
+                    }
+                }
+            }
+        return res;
+    }
+
+    public String getURIWithoutContextPath(HttpServletRequest request){
+        return  request.getRequestURI().substring(request.getContextPath().length());
+    }
 }
