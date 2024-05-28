@@ -20,7 +20,7 @@ public class FrontController extends HttpServlet {
     
     @Override
     public void init() throws ServletException {
-        String packageToScan = this.getInitParameter("WController");
+        String packageToScan = this.getInitParameter("package_name");
         try {
             this.controllers=new Utils().getAllClassesStringAnnotation(packageToScan,Controller.class);
             this.map=new Utils().scanControllersMethods(this.controllers);
