@@ -41,23 +41,37 @@ public class FrontController extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         PrintWriter out = response.getWriter();
         StringBuffer url = request.getRequestURL();
         /* URL a rechercher dans le map */
         String path =new Utils().getURIWithoutContextPath(request);
+        
         out.println("L'URL EST :" + url);
         out.println("L'URL a chercher dans le map : " + path);
-        /* Prendre le mapping correspondant a l'url */
-        if(map.containsKey(path)){
-            Mapping m=map.get(path);
-            out.print("\n");
-            out.println("Nom de la classe : "+ m.getClassName());
-            out.println("Nom de la méthode : "+ m.getMethodName());
-        }
-        else{
-            out.print("\n");
-            out.println("Aucune méthode associé a cette url");
-        }
+
+
+        // if(map.containsKey(path)){
+        //     Mapping m=map.get(path);
+        //     out.print("\n");
+        //     out.println("Nom de la classe : "+ m.getClassName());
+        //     out.println("Nom de la méthode : "+ m.getMethodName());
+        //     try {
+        //         out.println(Utils.callMethod(m.getClassName(),m.getMethodName()));
+        //     } catch (Exception e) {
+        //         out.println(e.getMessage());
+        //     }
+        
+        // }
+        // else{
+        //     out.print("\n");
+        //     out.println("Aucune méthode associé a cette url");
+        // }
+        
+        // appelle la methode
+        out.println("La fonction retourne:"+Utils.findAndCallMethod(map, path));
+        
+        
         /* Printer tous les controllers */
         out.print("\n");
         out.println("Liste de tous vos controllers : ");
