@@ -60,6 +60,28 @@ public class Utils {
             }
         return res;
     }
+    
+    public static String callMethod(String className,String methodName) throws Exception{
+        Class<?> laclasse=Class.forName(className);
+        Method method=laclasse.getMethod(methodName, (Class<?>[])null);
+        Object objet=method.invoke(laclasse.getConstructor().newInstance(), (Object[])null);
+        return objet.toString();
+    }
+
+    public static String findAndCallMethod(HashMap<String,Mapping> map,String path){
+        if(map.containsKey(path)){
+            Mapping m=map.get(path);
+            try {
+                return Utils.callMethod(m.getClassName(),m.getMethodName());
+            } catch (Exception e) {
+                return e.getMessage();
+            }
+        }
+        else{
+            return "Aucune méthode associé a cette url";
+        }
+
+    }
 
     public String getURIWithoutContextPath(HttpServletRequest request){
         return  request.getRequestURI().substring(request.getContextPath().length());
