@@ -17,5 +17,10 @@ tutorial to use the framework:
 </servlet-mapping>
 
 -creer un classe dans un package wcontroller et mapper @Controller
-importer les calsse mg.itu.prom16.annotations
--mapper les methode souhaitez avec @GetMapping retoune soit ModelView soit String 
+importer les calsse annotations
+-mapper les methode souhaitez avec @GetMapping retoune soit ModelView soit String
+    ==>cas MOdelandView creet une fonction qui retoune model and view 
+        utiliser add pour ajouter un objet au mode and view  
+        utiliser seturl pour configurer l url ou sera dirige le mode and view
+    ==>cas String 
+        le resultat de la methode sera affivhe dams le navigateur
