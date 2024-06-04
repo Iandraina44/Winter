@@ -5,7 +5,7 @@ tutorial to use the framework:
 -mapper un servlet comme suis 
 <servlet>
     <servlet-name>FrontController</servlet-name>
-    <servlet-class>mg.itu.prom16.controller.FrontController</servlet-class>
+    <servlet-class>controller.FrontController</servlet-class>
     <init-param>
         <param-name>package_name</param-name>
         <param-value>wcontroller</param-value>
@@ -18,4 +18,4 @@ tutorial to use the framework:
 
 -creer un classe dans un package wcontroller et mapper @Controller
 importer les calsse mg.itu.prom16.annotations
--mapper les methode souhaitez avec @GetMapping
+-mapper les methode souhaitez avec @GetMapping retoune soit ModelView soit String 

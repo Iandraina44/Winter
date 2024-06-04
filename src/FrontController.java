@@ -1,16 +1,18 @@
-package mg.itu.prom16.controller;
+package controller;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.List;
 
+import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import mg.itu.prom16.annotations.Controller;
-import mg.itu.prom16.utils.Mapping;
-import mg.itu.prom16.utils.Utils;
+import annotations.Controller;
+import utils.Mapping;
+import utils.ModelView;
+import utils.Utils;
 
 public class FrontController extends HttpServlet {
     private List<String> controllers;   
@@ -44,6 +46,7 @@ public class FrontController extends HttpServlet {
 
         PrintWriter out = response.getWriter();
         StringBuffer url = request.getRequestURL();
+        
         /* URL a rechercher dans le map */
         String path =new Utils().getURIWithoutContextPath(request);
         
@@ -51,32 +54,38 @@ public class FrontController extends HttpServlet {
         out.println("L'URL a chercher dans le map : " + path);
 
 
-        // if(map.containsKey(path)){
-        //     Mapping m=map.get(path);
-        //     out.print("\n");
-        //     out.println("Nom de la classe : "+ m.getClassName());
-        //     out.println("Nom de la méthode : "+ m.getMethodName());
-        //     try {
-        //         out.println(Utils.callMethod(m.getClassName(),m.getMethodName()));
-        //     } catch (Exception e) {
-        //         out.println(e.getMessage());
-        //     }
-        
-        // }
-        // else{
-        //     out.print("\n");
-        //     out.println("Aucune méthode associé a cette url");
-        // }
-        
         // appelle la methode
-        out.println("La fonction retourne:"+Utils.findAndCallMethod(map, path));
+        try {
+            Object objet=Utils.findAndCallMethod(map, path);
+            if (objet instanceof String) {
+                out.println(objet.toString());
+            }
+            else if (objet instanceof ModelView) {
+                HashMap<String,Object> hash=((ModelView)objet).getData();
+                for (String string : hash.keySet()) {
+                    request.setAttribute(string, hash.get(string));
+                    out.println(string);
+                }
+                String view=((ModelView)objet).getUrl();
+                out.println(view);
+                RequestDispatcher dispat = request.getRequestDispatcher(view);
+                // dispat.forward(request, response);
+            }
+        
+        } catch (Exception e) {
+            out.println(e.getMessage());
+        }
+      
         
         
         /* Printer tous les controllers */
         out.print("\n");
         out.println("Liste de tous vos controllers : ");
+
+
         for (String class1 : this.controllers) {
             out.println(class1);
         }
+        
     }
 }

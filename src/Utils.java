@@ -1,4 +1,4 @@
-package mg.itu.prom16.utils;
+package utils;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import jakarta.servlet.http.HttpServletRequest;
-import mg.itu.prom16.annotations.Controller;
-import mg.itu.prom16.annotations.GetMapping;
+import annotations.Controller;
+import annotations.GetMapping;
 
 public class Utils {
     boolean isController(Class<?> c) {
@@ -61,24 +61,20 @@ public class Utils {
         return res;
     }
     
-    public static String callMethod(String className,String methodName) throws Exception{
+    public static Object callMethod(String className,String methodName) throws Exception{
         Class<?> laclasse=Class.forName(className);
         Method method=laclasse.getMethod(methodName, (Class<?>[])null);
         Object objet=method.invoke(laclasse.getConstructor().newInstance(), (Object[])null);
-        return objet.toString();
+        return objet;
     }
 
-    public static String findAndCallMethod(HashMap<String,Mapping> map,String path){
+    public static Object findAndCallMethod(HashMap<String,Mapping> map,String path)throws Exception{
         if(map.containsKey(path)){
             Mapping m=map.get(path);
-            try {
-                return Utils.callMethod(m.getClassName(),m.getMethodName());
-            } catch (Exception e) {
-                return e.getMessage();
-            }
+            return Utils.callMethod(m.getClassName(),m.getMethodName());
         }
         else{
-            return "Aucune méthode associé a cette url";
+            throw new Exception("pas de methode");
         }
 
     }
