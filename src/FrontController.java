@@ -68,8 +68,8 @@ public class FrontController extends HttpServlet {
                 }
                 String view=((ModelView)objet).getUrl();
                 out.println(view);
-                RequestDispatcher dispat = request.getRequestDispatcher(view);
-                dispat.forward(request, response);
+
+                request.getRequestDispatcher(view).forward(request, response);
             }
         
         } catch (Exception e) {
