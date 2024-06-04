@@ -73,7 +73,7 @@ public class FrontController extends HttpServlet {
             }
         
         } catch (Exception e) {
-            out.println(e.getMessage());
+            out.println(e.getLocalizedMessage());
         }
       
         
