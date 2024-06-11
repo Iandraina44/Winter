@@ -23,13 +23,29 @@ public class FrontController extends HttpServlet {
     @Override
     public void init() throws ServletException {
         String packageToScan = this.getInitParameter("package_name");
+        if (packageToScan == null || packageToScan.isEmpty()) {
+            throw new ServletException("Le paramètre 'package_name' est manquant ou vide.");
+        }
+        
         try {
-            this.controllers=new Utils().getAllClassesStringAnnotation(packageToScan,Controller.class);
-            this.map=new Utils().scanControllersMethods(this.controllers);
+            this.controllers = new Utils().getAllClassesStringAnnotation(packageToScan, Controller.class);
+            if (this.controllers.isEmpty()) {
+                throw new ServletException("Aucune classe trouvée dans le package spécifié : " + packageToScan);
+            }
+            this.map = new Utils().scanControllersMethods(this.controllers);
+
+            if (Utils.hasDuplicateKeys(map)) {
+                throw new ServletException("vous avez deux get mapping similaires");
+            }
+
+        } catch (ServletException e) {
+            throw e;  // Relancer l'exception ServletException
         } catch (Exception e) {
             e.printStackTrace();
+            throw new ServletException("Une erreur est survenue lors de l'initialisation des contrôleurs.", e);
         }
     }
+    
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -70,6 +86,9 @@ public class FrontController extends HttpServlet {
                 out.println(view);
 
                 request.getRequestDispatcher(view).forward(request, response);
+            }
+            else{
+                throw new ServletException("type de retour non correcte doit etre String ou ModelView");
             }
         
         } catch (Exception e) {
