@@ -5,7 +5,9 @@ import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import jakarta.servlet.http.HttpServletRequest;
 import annotations.Controller;
@@ -81,5 +83,15 @@ public class Utils {
 
     public String getURIWithoutContextPath(HttpServletRequest request){
         return  request.getRequestURI().substring(request.getContextPath().length());
+    }
+
+    public static boolean hasDuplicateKeys(HashMap<String, Mapping> map) {
+        Set<String> keysSet = new HashSet<>();
+        for (String key : map.keySet()) {
+            if (!keysSet.add(key)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
