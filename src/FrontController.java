@@ -22,21 +22,26 @@ public class FrontController extends HttpServlet {
     
     @Override
     public void init() throws ServletException {
+
         String packageToScan = this.getInitParameter("package_name");
+        
         if (packageToScan == null || packageToScan.isEmpty()) {
             throw new ServletException("Le paramètre 'package_name' est manquant ou vide.");
         }
         
         try {
             this.controllers = new Utils().getAllClassesStringAnnotation(packageToScan, Controller.class);
+
             if (this.controllers.isEmpty()) {
                 throw new ServletException("Aucune classe trouvée dans le package spécifié : " + packageToScan);
             }
+
             this.map = new Utils().scanControllersMethods(this.controllers);
 
             if (Utils.hasDuplicateKeys(map)) {
-                throw new ServletException("vous avez deux get mapping similaires");
+                throw new ServletException("vous avez deux get mapping similaires dans votre classe");
             }
+
 
         } catch (ServletException e) {
             throw e;  // Relancer l'exception ServletException
@@ -70,30 +75,9 @@ public class FrontController extends HttpServlet {
         out.println("L'URL a chercher dans le map : " + path);
 
 
-        // appelle la methode
-        try {
-            Object objet=Utils.findAndCallMethod(map, path);
-            if (objet instanceof String) {
-                out.println(objet.toString());
-            }
-            else if (objet instanceof ModelView) {
-                HashMap<String,Object> hash=((ModelView)objet).getData();
-                for (String string : hash.keySet()) {
-                    request.setAttribute(string, hash.get(string));
-                    out.println(string);
-                }
-                String view=((ModelView)objet).getUrl();
-                out.println(view);
-
-                request.getRequestDispatcher(view).forward(request, response);
-            }
-            else{
-                throw new ServletException("type de retour non correcte doit etre String ou ModelView");
-            }
+        // process la methode 
+        Utils.ProcessMethod(map,path,request,response,out);
         
-        } catch (Exception e) {
-            out.println(e.getLocalizedMessage());
-        }
       
         
         
