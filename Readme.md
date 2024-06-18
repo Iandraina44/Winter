@@ -24,3 +24,6 @@ importer les calsse annotations
         utiliser seturl pour configurer l url ou sera dirige le mode and view
     ==>cas String 
         le resultat de la methode sera affivhe dams le navigateur
+
+
+-les attributs de fonction doivent etre mappe avec requestParam(value="nom de l attribut") 

@@ -86,7 +86,6 @@ public class Utils {
         }
         Object[] paramValues=getParameters(method,request);
         Object objet=method.invoke(laclasse.getConstructor().newInstance(), paramValues );
-        
         return objet;
     }
 
@@ -96,18 +95,13 @@ public class Utils {
         Object[] parameterValues = new Object[parameters.length];
     
         for (int i = 0; i < parameters.length; i++) {
-
-            
             Annotation[] annotations =  parameters[i].getAnnotations();
-
             for (Annotation annotation : annotations) {
-
                 if (annotation instanceof RequestParam) {
                     String paramName = ((RequestParam) annotation).value();
                     String paramValue = request.getParameter(paramName);
                     if (parameters[i].getType() == String.class) {
-
-                    parameterValues[i] = paramValue;
+                        parameterValues[i] = paramValue;
                     } else if (parameters[i].getType() == int.class || parameters[i].getType() == Integer.class) {
                         parameterValues[i] = Integer.parseInt(paramValue);
                     } else if (parameters[i].getType() == double.class || parameters[i].getType() == Double.class) {
