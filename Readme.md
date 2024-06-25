@@ -27,3 +27,4 @@ importer les calsse annotations
 
 
 -les attributs de fonction doivent etre mappe avec requestParam(value="nom de l attribut") 
+Rajouer -parameters dans la compilation pour eviter de necessairement mettre un mapping

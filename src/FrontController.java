@@ -30,6 +30,7 @@ public class FrontController extends HttpServlet {
         }
         
         try {
+
             this.controllers = new Utils().getAllClassesStringAnnotation(packageToScan, Controller.class);
 
             if (this.controllers.isEmpty()) {
@@ -66,6 +67,7 @@ public class FrontController extends HttpServlet {
             throws ServletException, IOException {
 
         PrintWriter out = response.getWriter();
+        
         StringBuffer url = request.getRequestURL();
         
         /* URL a rechercher dans le map */

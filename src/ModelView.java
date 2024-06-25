@@ -3,8 +3,10 @@ package utils;
 import java.util.HashMap;
 
 public class ModelView {
+    
     String url;
     HashMap <String,Object> data;
+
     public String getUrl() {
         return url;
     }
