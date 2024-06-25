@@ -205,18 +205,24 @@ public class Utils {
 
 
     public static void ProcessMethod(HashMap<String,Mapping> map,String path,HttpServletRequest request,HttpServletResponse response,PrintWriter out)
+    throws ServletException
     {
         try {
             Object objet=Utils.findAndCallMethod(map, path,request);       
             if (objet instanceof String) {
                 out.println(objet.toString());
             }
+
             else if (objet instanceof ModelView) {
-                
+
                 HashMap<String,Object> hash=((ModelView)objet).getData();
-                for (String string : hash.keySet()) {
-                    request.setAttribute(string, hash.get(string));
-                    out.println(string);
+                if (hash != null) {
+                    if (!hash.isEmpty()) {
+                        for (String string : hash.keySet()) {
+                            request.setAttribute(string, hash.get(string));
+                            out.println(string);
+                        }
+                    }
                 }
                 String view=((ModelView)objet).getUrl();
                 out.println(view);
@@ -226,7 +232,7 @@ public class Utils {
                 throw new ServletException("type de retour non correcte doit etre String ou ModelView");
             }
             } catch (Exception e) {
-            out.println(e.getLocalizedMessage());
+            throw new ServletException(e.getLocalizedMessage());
         }
     }
 }
