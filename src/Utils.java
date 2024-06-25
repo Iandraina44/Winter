@@ -129,6 +129,9 @@ public class Utils {
             }
             }else{
                 paramName=parameters[i].getName();
+                
+                throw new ServletException("pas d annotation ETU002453");
+
             }
                 if (parameters[i].getType() == String.class||
                 parameters[i].getType() == int.class ||
@@ -144,6 +147,7 @@ public class Utils {
                 }
 
                 } else {
+
 
                     Class<?> laclasse=Class.forName(parameters[i].getType().getName());
                     Object newInstance = laclasse.getDeclaredConstructor().newInstance();
