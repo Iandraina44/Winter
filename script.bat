@@ -6,7 +6,7 @@ set jarname=Winter
 
 set projectlib=D:\S4\webdynamique\SPRINTS\DeployWinter\lib
 
-javac -cp "%lib%\*"   -d    "%bin%"   %src%
+javac -parameters -cp "%lib%\*"   -d    "%bin%"   %src%
 
 
 
