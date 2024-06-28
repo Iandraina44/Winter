@@ -6,6 +6,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.net.URLDecoder;
+import java.rmi.ServerException;
+import java.security.spec.ECFieldF2m;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -104,7 +106,7 @@ public class Utils {
         if (method == null) {
             throw new ServletException("No such method" + methodName);
         }
-        Object[] paramValues=getParameters(method,request);
+        Object[] paramValues=getParameters(method,request, null);
 
         Object objet=method.invoke(laclasse.getConstructor().newInstance(), paramValues );
         return objet;
@@ -112,7 +114,7 @@ public class Utils {
     }
 
     
-    public static Object[] getParameters(Method method,HttpServletRequest request ) throws ServletException, Exception{
+    public static Object[] getParameters(Method method,HttpServletRequest request ,HttpServletResponse response) throws ServletException, Exception{
 
         // Get parameter types and values from the request using annotations
         Parameter[] parameters = method.getParameters();
@@ -128,9 +130,12 @@ public class Utils {
                 }
             }
             }else{
+
                 paramName=parameters[i].getName();
-                
-                throw new ServletException("pas d annotation ETU002453");
+
+                System.out.println("alohan exception");
+
+                throw new Exception("pas d annotation ETU002453");
 
             }
                 if (parameters[i].getType() == String.class||
@@ -236,7 +241,19 @@ public class Utils {
                 throw new ServletException("type de retour non correcte doit etre String ou ModelView");
             }
             } catch (Exception e) {
-            throw new ServletException(e.getLocalizedMessage());
+
+                out.print(e.getLocalizedMessage());                    
+                
+                try {
+                        
+                request.setAttribute("exception",e.getLocalizedMessage());
+                request.getRequestDispatcher("exception.jsp").forward(request, response);
+            
+                } catch (Exception ex) {
+                System.err.println(ex.getLocalizedMessage());    
+                }
+            
+
         }
     }
 }
