@@ -28,3 +28,11 @@ importer les calsse annotations
 
 -les attributs de fonction doivent etre mappe avec requestParam(value="nom de l attribut") 
 Rajouer -parameters dans la compilation pour eviter de necessairement mettre un mapping
+
+
+-utilisation de session :
+    ==>mettre la classe mysession comme attribut de la classe controller ne pas l initilaliser
+    ==>utiliser les methodede mysession pour acceder a HTTPsession en back:
+        -add()
+        -get()
+        -delete()
