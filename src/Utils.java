@@ -77,7 +77,7 @@ public class Utils {
                         
                             String existant=res.get(url).className+":"+res.get(url).methodName;
                             String nouveau=classe.getName()+":"+method.getName();
-                            throw new Exception("L'url "+url+" est déja mappé sur "+existant+" et ne peut plus l'être sur "+nouveau);
+                            throw new ServletException("L'url "+url+" est déja mappé sur "+existant+" et ne peut plus l'être sur "+nouveau);
                         }
                         /* Prendre l'annotation */
                         res.put(url,new Mapping(c,method.getName()));
@@ -89,6 +89,7 @@ public class Utils {
     
     public static Object callMethod(String className,String methodName,String path,HttpServletRequest request) throws ServletException,Exception{
         Class<?> laclasse=Class.forName(className);
+
         Method method=null;
         for (Method m : laclasse.getMethods()) {
             if (m.getName().equals(methodName)) {
@@ -108,8 +109,25 @@ public class Utils {
         }
         Object[] paramValues=getParameters(method,request, null);
 
-        Object objet=method.invoke(laclasse.getConstructor().newInstance(), paramValues );
+        Object controller=laclasse.getConstructor().newInstance();
+
+        setSessionAttribut(controller, laclasse, request);
+
+        Object objet=method.invoke(controller, paramValues );
         return objet;
+
+    }
+
+
+    public static void setSessionAttribut(Object obje,Class<?> laclasse,HttpServletRequest request) throws Exception, ServerException{
+
+        Field[] fld=laclasse.getDeclaredFields();
+        for (Field field : fld) {
+            if (field.getType().equals(MySession.class)) {
+                field.setAccessible(true);
+                field.set(obje,new MySession(request.getSession(true)));
+            }
+        }
 
     }
 
@@ -132,10 +150,7 @@ public class Utils {
             }else{
 
                 paramName=parameters[i].getName();
-
-                System.out.println("alohan exception");
-
-                throw new Exception("pas d annotation ETU002453");
+                // throw new Exception("pas d annotation ETU002453");
 
             }
                 if (parameters[i].getType() == String.class||
