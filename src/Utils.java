@@ -21,6 +21,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import utils.ModelView;
+import utils.MySession;
 import annotations.*;
 
 public class Utils {
@@ -77,7 +78,7 @@ public class Utils {
                         
                             String existant=res.get(url).className+":"+res.get(url).methodName;
                             String nouveau=classe.getName()+":"+method.getName();
-                            throw new Exception("L'url "+url+" est déja mappé sur "+existant+" et ne peut plus l'être sur "+nouveau);
+                            throw new ServletException("L'url "+url+" est déja mappé sur "+existant+" et ne peut plus l'être sur "+nouveau);
                         }
                         /* Prendre l'annotation */
                         res.put(url,new Mapping(c,method.getName()));
@@ -89,6 +90,7 @@ public class Utils {
     
     public static Object callMethod(String className,String methodName,String path,HttpServletRequest request) throws ServletException,Exception{
         Class<?> laclasse=Class.forName(className);
+
         Method method=null;
         for (Method m : laclasse.getMethods()) {
             if (m.getName().equals(methodName)) {
@@ -108,8 +110,25 @@ public class Utils {
         }
         Object[] paramValues=getParameters(method,request, null);
 
-        Object objet=method.invoke(laclasse.getConstructor().newInstance(), paramValues );
+        Object controller=laclasse.getConstructor().newInstance();
+
+        setSessionAttribut(controller, laclasse, request);
+
+        Object objet=method.invoke(controller, paramValues );
         return objet;
+
+    }
+
+
+    public static void setSessionAttribut(Object obje,Class<?> laclasse,HttpServletRequest request) throws Exception, ServerException{
+
+        Field[] fld=laclasse.getDeclaredFields();
+        for (Field field : fld) {
+            if (field.getType().equals(MySession.class)) {
+                field.setAccessible(true);
+                field.set(obje,new MySession(request.getSession(true)));
+            }
+        }
 
     }
 
@@ -121,63 +140,68 @@ public class Utils {
         Object[] parameterValues = new Object[parameters.length];
     
         for (int i = 0; i < parameters.length; i++) {
-            String paramName = "";
-            Annotation[] annotations =  parameters[i].getAnnotations();
-            if (annotations.length>0) {
-            for (Annotation annotation : annotations) {
-                if (annotation instanceof RequestParam) {
-                     paramName = ((RequestParam) annotation).value();
-                }
+
+            if (parameters[i].getType().equals(MySession.class)) {
+                parameterValues[i]=new MySession(request.getSession());
             }
-            }else{
 
-                paramName=parameters[i].getName();
-
-                System.out.println("alohan exception");
-
-                throw new Exception("pas d annotation ETU002453");
-
-            }
-                if (parameters[i].getType() == String.class||
-                parameters[i].getType() == int.class ||
-                parameters[i].getType() == double.class) {
-
-                String paramValue = request.getParameter(paramName);
-                if (parameters[i].getType() == String.class) {
-                    parameterValues[i] = paramValue;
-                } else if (parameters[i].getType() == int.class || parameters[i].getType() == Integer.class) {
-                    parameterValues[i] = Integer.parseInt(paramValue);
-                } else if (parameters[i].getType() == double.class || parameters[i].getType() == Double.class) {
-                    parameterValues[i] = Double.parseDouble(paramValue);
-                }
-
-                } else {
-
-
-                    Class<?> laclasse=Class.forName(parameters[i].getType().getName());
-                    Object newInstance = laclasse.getDeclaredConstructor().newInstance();
-                    Field[] attributs=(laclasse).getDeclaredFields();
-                    Object[] attributsvalue=new Object[attributs.length];
-
-                    for (int j=0 ; j<attributs.length ;j++) {
-                        attributs[j].setAccessible(true);
-                        String attvalue=request.getParameter(paramName+"."+attributs[j].getName());
-                        System.out.println("tonga eto");
-                        
-                        if (attributs[j].getType() == String.class) {
-                            attributsvalue[j] = attvalue;
-                        } else if (attributs[j].getType() == int.class || attributs[j].getType() == Integer.class) {
-                            attributsvalue[j] = Integer.parseInt(attvalue);
-                        } else if (attributs[j].getType() == double.class || attributs[j].getType() == Double.class) {
-                            attributsvalue[j] = Double.parseDouble(attvalue);
+            else{
+                String paramName = "";
+                Annotation[] annotations =  parameters[i].getAnnotations();
+                if (annotations.length>0) {
+                    for (Annotation annotation : annotations) {
+                        if (annotation instanceof RequestParam) {
+                            paramName = ((RequestParam) annotation).value();
                         }
-                        else {
-                            throw new ServletException("l objet ne peut pas avoir d objet en tant que parametre");
-                        }
-                        attributs[j].set(newInstance, attributsvalue[j]);
                     }
-                    parameterValues[i] =newInstance;
-            
+                }else{
+
+                    paramName=parameters[i].getName();
+                    // throw new Exception("pas d annotation ETU002453");
+
+                }
+                    if (parameters[i].getType() == String.class||
+                    parameters[i].getType() == int.class ||
+                    parameters[i].getType() == double.class) {
+
+                    String paramValue = request.getParameter(paramName);
+
+                    if (parameters[i].getType() == String.class) {
+                        parameterValues[i] = paramValue;
+                    } else if (parameters[i].getType() == int.class || parameters[i].getType() == Integer.class) {
+                        parameterValues[i] = Integer.parseInt(paramValue);
+                    } else if (parameters[i].getType() == double.class || parameters[i].getType() == Double.class) {
+                        parameterValues[i] = Double.parseDouble(paramValue);
+                    }
+
+                    } else {
+
+
+                        Class<?> laclasse=Class.forName(parameters[i].getType().getName());
+                        Object newInstance = laclasse.getDeclaredConstructor().newInstance();
+                        Field[] attributs=(laclasse).getDeclaredFields();
+                        Object[] attributsvalue=new Object[attributs.length];
+
+                        for (int j=0 ; j<attributs.length ;j++) {
+                            attributs[j].setAccessible(true);
+                            String attvalue=request.getParameter(paramName+"."+attributs[j].getName());
+                            System.out.println("tonga eto");
+                            
+                            if (attributs[j].getType() == String.class) {
+                                attributsvalue[j] = attvalue;
+                            } else if (attributs[j].getType() == int.class || attributs[j].getType() == Integer.class) {
+                                attributsvalue[j] = Integer.parseInt(attvalue);
+                            } else if (attributs[j].getType() == double.class || attributs[j].getType() == Double.class) {
+                                attributsvalue[j] = Double.parseDouble(attvalue);
+                            }
+                            else {
+                                
+                                throw new ServletException("l objet ne peut pas avoir d objet en tant que parametre");
+                            }
+                            attributs[j].set(newInstance, attributsvalue[j]);
+                        }
+                        parameterValues[i] =newInstance;
+                    }
                 }
         }
         return parameterValues;
