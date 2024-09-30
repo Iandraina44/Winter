@@ -4,7 +4,7 @@ set src=src\*.java
 set srcse=src\
 set jarname=Winter
 
-set projectlib=D:\S4\webdynamique\SPRINTS\DeployWinter\lib
+set projectlib=D:\ITU\SPRINTS\DeployWinter\lib
 
 javac -parameters -cp "%lib%\*"   -d    "%bin%"   %src%
 
