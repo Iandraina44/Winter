@@ -15,6 +15,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.gson.Gson;
+
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -87,6 +89,29 @@ public class Utils {
             }
         return res;
     }
+
+
+    public static Method findMethod(String className,String methodName,String path) throws ServletException,Exception{
+        Class<?> laclasse=Class.forName(className);
+
+        Method method=null;
+        for (Method m : laclasse.getMethods()) {
+            if (m.getName().equals(methodName)) {
+                    Annotation[] annotations =  m.getAnnotations();
+                    if (annotations[0] instanceof GetMapping) {
+                        String name = ((GetMapping) annotations[0]).url();
+                        if (name.equals(path)) {
+                            method = m;
+                        }
+                   }
+            }
+        }
+        if (method == null) {
+            throw new ServletException("No such method" + methodName);
+        }
+        return  method;
+    }
+
     
     public static Object callMethod(String className,String methodName,String path,HttpServletRequest request) throws ServletException,Exception{
         Class<?> laclasse=Class.forName(className);
@@ -242,10 +267,26 @@ public class Utils {
     {
         try {
             Object objet=Utils.findAndCallMethod(map, path,request);       
+
+            Method method=Utils.findMethod(map.get(path).getClassName(),map.get(path).getMethodName(), path);
+            if (method.isAnnotationPresent(RestApi.class)) {
+
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                Gson gson=new  Gson();
+                if (!(objet instanceof ModelView)) {
+                    gson.toJson(objet,out);
+                }
+                else{
+                    ModelView mv =(ModelView) objet;
+                    gson.toJson(mv.getData(),out);
+                }
+                   
+            }
+
             if (objet instanceof String) {
                 out.println(objet.toString());
             }
-
             else if (objet instanceof ModelView) {
 
                 HashMap<String,Object> hash=((ModelView)objet).getData();
@@ -261,6 +302,7 @@ public class Utils {
                 out.println(view);
                 request.getRequestDispatcher(view).forward(request, response);
             }
+            
             else{
                 throw new ServletException("type de retour non correcte doit etre String ou ModelView");
             }
