@@ -78,7 +78,7 @@ public class FrontController extends HttpServlet {
 
 
         // process la methode 
-            Utils.ProcessMethod(map,path,request,response,out);
+        Utils.ProcessMethod(map,path,request,response,out);
         
       
         
