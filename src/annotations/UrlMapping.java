@@ -5,6 +5,7 @@ import java.lang.annotation.Target;
 import java.lang.annotation.RetentionPolicy;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Post {
-    String value="POST";
+public @interface UrlMapping {
+    
+    String url();
 }

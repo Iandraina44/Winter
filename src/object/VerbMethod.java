@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import mg.itu.prom16.utils.Mapping;
+import utils.Mapping;
 
 public class VerbMethod {
     String verb;

@@ -1,11 +1,11 @@
 package annotations;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-@Retention(RetentionPolicy.RUNTIME)
+import java.lang.annotation.RetentionPolicy;
 @Target(ElementType.PARAMETER)
-public @interface RequestParam {
-    String value();
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Param {
+    String paramName();
 }
