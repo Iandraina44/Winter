@@ -173,7 +173,8 @@ public class Utils {
             else{
                 String paramName = "";
                 Annotation[] annotations =  parameters[i].getAnnotations();
-                if (annotations.length>0) {
+                
+                 if (annotations.length>0) {
                     for (Annotation annotation : annotations) {
                         if (annotation instanceof RequestParam) {
                             paramName = ((RequestParam) annotation).value();
