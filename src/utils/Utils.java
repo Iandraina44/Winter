@@ -24,6 +24,7 @@ import annotations.Post;
 import annotations.RestAPI;
 import annotations.UrlMapping;
 import object.ModelView;
+import object.MyMultiPart;
 import object.MySession;
 import object.ResourceNotFound;
 import object.VerbMethod;
@@ -177,7 +178,22 @@ public class Utils {
             Class<?> typage = param.getType();
             if (typage.equals(MySession.class)) {
                 ls.add(new MySession(req.getSession()));
-            } else if (!typage.isPrimitive() && !typage.equals(String.class)) {
+            }
+
+            // teto spint 12
+            else if (typage.equals(MyMultiPart.class)) {
+                if (param.isAnnotationPresent(Param.class)
+                        && params.containsKey(param.getAnnotation(Param.class).paramName())) {
+                    key = param.getAnnotation(Param.class).paramName();
+                }else{
+                    key = param.getName();
+                }
+                ls.add(new MyMultiPart(req.getPart(key)));
+            }
+
+
+
+            else if (!typage.isPrimitive() && !typage.equals(String.class)) {
                 this.processObject(params, param, ls);
             } else {
                 if (params.containsKey(param.getName())) {
@@ -259,6 +275,7 @@ public class Utils {
                     classe.getMethod(setCatMethodName(field.getName()), MySession.class).invoke(appelant,
                             new MySession(req.getSession()));
                 }
+                
             }
             res = methode.invoke(appelant, this.getArgs(req, params, methode));
 
