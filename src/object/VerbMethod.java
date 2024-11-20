@@ -10,7 +10,6 @@ import utils.Mapping;
 public class VerbMethod {
     String verb;
     Method methode;
-    
     public String getVerb() {
         return verb;
     }

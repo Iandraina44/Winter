@@ -7,7 +7,6 @@ import object.VerbMethod;
 public class Mapping {
     String className;
     Set<VerbMethod> verbmethods;
-    
     public String getClassName() {
         return className;
     }
