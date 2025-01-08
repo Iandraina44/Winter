@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 
 import jakarta.servlet.http.HttpServletRequest;
 import annotations.Controller;
+import annotations.ErrorUrl;
 import annotations.FieldParam;
 import annotations.Get;
 import annotations.Numeric;
@@ -27,6 +28,7 @@ import annotations.RestAPI;
 import annotations.UrlMapping;
 import exceptions.NumericException;
 import exceptions.RangeException;
+import exceptions.ValidationException;
 import object.ModelView;
 import object.MyMultiPart;
 import object.MySession;
@@ -146,15 +148,15 @@ public class Utils {
     public String getURIWithoutContextPath(HttpServletRequest request) {
         return request.getRequestURI().substring(request.getContextPath().length());
     }
-
-    public void validateField(Map<String, String[]> params, Field field, String key) throws Exception {
+    public List<String> validateField(Map<String, String[]> params, Field field, String key) {
+        List<String> errors=new ArrayList<>();
         // Check if the field has a Numeric annotation
         if (field.isAnnotationPresent(Numeric.class)) {
             if (params.get(key) != null) {
                 try {
                     Double.parseDouble(params.get(key)[0]);
                 } catch (Exception e) {
-                    throw new NumericException(key);
+                    errors.add(new NumericException(key).getMessage());
                 }
             }
         }
@@ -162,21 +164,23 @@ public class Utils {
         if (field.isAnnotationPresent(Range.class)) {
             if (params.get(key) != null) {
                 try {
-                    Double.parseDouble(params.get(key)[0]);
-                } catch (Exception e) {
-                    throw new NumericException(key);
+                    Range range = field.getAnnotation(Range.class);
+                    double value = Double.parseDouble(params.get(key)[0]);
+                    if (value < range.min() || value > range.max()) {
+                        errors.add(new RangeException(key, range).getMessage());
+                    }
+                } catch (NumberFormatException e) {
+                    errors.add(new NumericException(key).getMessage());
                 }
-                Range range = field.getAnnotation(Range.class);
-                double value = Double.parseDouble(params.get(key)[0]);
-                if (value < range.min() || value > range.max()) {
-                    throw new RangeException(key, range);
-                }
-
             }
         }
+        return errors;
     }
+    
+    
 
     public void processObject(Map<String, String[]> params, Parameter param, List<Object> ls) throws Exception {
+        Map<String, List<String>> errorMap = new HashMap<>();
         String key = null;
         Class<?> c = param.getType();
         String nomObjet = null;
@@ -185,14 +189,27 @@ public class Utils {
         Object o = c.getConstructor((Class[]) null).newInstance((Object[]) null);
         /// prendre les attributs
         Field[] f = c.getDeclaredFields();
+        /// ATOMBOKA eto sprint 13
+    /// validation des fields 
+        for(Field field:f){
+            String attributObjet = null;
+            attributObjet = field.isAnnotationPresent(FieldParam.class)
+                    ? field.getAnnotation(FieldParam.class).paramName()
+                    : field.getName();
+            key = nomObjet + "." + attributObjet;
+            if(validateField(params, field, key).size()>0){
+                errorMap.put(key, validateField(params, field, key));
+            }
+        }
+        if(!errorMap.isEmpty()){
+            throw new ValidationException(errorMap);
+        }
         for (Field field : f) {
             String attributObjet = null;
             attributObjet = field.isAnnotationPresent(FieldParam.class)
                     ? field.getAnnotation(FieldParam.class).paramName()
                     : field.getName();
             key = nomObjet + "." + attributObjet;
-            /// ATOMBOKA eto sprint 13
-            validateField(params, field, key);
             Method setters = c.getDeclaredMethod(setCatMethodName(attributObjet), field.getType());
             if (key == null || params.get(key) == null) {
                 setters.invoke(o, this.parse(null, field.getType()));
@@ -268,31 +285,6 @@ public class Utils {
             throw new Exception("Aucune méthode associé a cette url");
         }
     }
-
-    // public Object searchExecute(HttpServletRequest req, HashMap<String, Mapping>
-    // map, String path,
-    // Map<String, String[]> params)
-    // throws Exception {
-    // Method methode = this.searchMethod(map, path);
-    // Mapping m = map.get(path);
-    // Class<?> classe = Class.forName(m.getClassName());
-    // Object appelant = classe.getDeclaredConstructor().newInstance((Object[])
-    // null);
-    // for (Field field : classe.getDeclaredFields()) {
-    // if (field.getType().equals(MySession.class)) {
-    // classe.getMethod(setCatMethodName(field.getName()),
-    // MySession.class).invoke(appelant,
-    // new MySession(req.getSession()));
-    // }
-    // }
-    // Object res = methode.invoke(appelant, this.getArgs(req, params, methode));
-    // if (!(res instanceof String) && !(res instanceof ModelView)) {
-    // throw new Exception("La méthode " + methode.getName() + " ne retourne ni
-    // String ni ModelView");
-    // }
-    // return res;
-    // }
-
     public Object execute(HttpServletRequest req, VerbMethod verbmethode, HashMap<String, Mapping> map, String path,
             Map<String, String[]> params)
             throws Exception {
@@ -309,7 +301,20 @@ public class Utils {
                             new MySession(req.getSession()));
                 }
             }
-            res = methode.invoke(appelant, this.getArgs(req, params, methode));
+            
+            Object[] args = null;
+            try{
+                args = this.getArgs(req, params, methode);
+            }
+            catch(ValidationException ve){
+                if(methode.isAnnotationPresent(ErrorUrl.class)){
+                    ve.setErrorUrl(methode.getAnnotation(ErrorUrl.class).url());
+                    ve.setErrorMethod(methode.getAnnotation(ErrorUrl.class).method());
+                }
+                ve.setParamsBeforeError(params);
+                throw ve;
+            }
+            res = methode.invoke(appelant,args);
 
         } else {
             throw new Exception(

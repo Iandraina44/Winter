@@ -14,9 +14,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import annotations.Controller;
 import annotations.RestAPI;
+import exceptions.ValidationException;
 import object.ModelView;
 import object.ResourceNotFound;
 import object.VerbMethod;
@@ -56,14 +58,14 @@ public class FrontController extends HttpServlet {
         StringBuffer url = request.getRequestURL();
         /* URL a rechercher dans le map */
         String path = u.getURIWithoutContextPath(request);
-        /* Prendre le mapping correspondant a l'url */
+        Object res = null;
         try {
             // Prendre les parametres
             Map<String, String[]> params = request.getParameterMap();
             // Recherche methode
             VerbMethod meth = u.searchVerbMethod(request, map, path);
             // Execution methode
-            Object res = u.execute(request, meth, map, path, params);
+            res = u.execute(request, meth, map, path, params);
             /* verification si methode est rest */
             if (meth.getMethode().isAnnotationPresent(RestAPI.class)) {
                 /* Changer le type du response en json */
@@ -79,7 +81,6 @@ public class FrontController extends HttpServlet {
                     ModelView mv = (ModelView) res;
                     gson.toJson(mv.getData(), out);
                 }
-
             }
             /* si methode NON REST */
             else {
@@ -104,19 +105,38 @@ public class FrontController extends HttpServlet {
                     dispatcher.forward(request, response);
                 }
             }
-        } 
-        catch(ResourceNotFound e){
+        } catch (ValidationException e) {
+            String errorUrl = e.getErrorUrl();
+            String errorMethod = e.getErrorMethod();
+            if (errorUrl != null) {
+                // Create a new HttpServletRequestWrapper to modify the request method
+                HttpServletRequestWrapper wrappedRequest = new HttpServletRequestWrapper(request) {
+                    @Override
+                    public String getMethod() {
+                        return errorMethod;
+                    }
+                };
+
+                wrappedRequest.setAttribute("errors", e.getErrorMap());
+                wrappedRequest.setAttribute("params", e.getParamsBeforeError());
+                // Dispatch the new request to errorUrl
+                RequestDispatcher dispatcher = wrappedRequest.getRequestDispatcher(errorUrl);
+                dispatcher.forward(wrappedRequest, response);
+            } else {
+                // Print the errors directly
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write(e.getMessage());
+            }
+        } catch (ResourceNotFound e) {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
             response.getWriter().write(e.getMessage());
-            e.printStackTrace();;
-        }catch (Exception e) {
+            e.printStackTrace();
+        } catch (Exception e) {
             // TODO Auto-generated catch block
             /* throw new ServletException(e); */
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.getWriter().write(e.getMessage());
             e.printStackTrace();
-
-
         }
     }
 
