@@ -1,4 +1,4 @@
-package exceptions;
+package mg.itu.prom16.exceptions;
 
 import java.util.List;
 import java.util.Map;

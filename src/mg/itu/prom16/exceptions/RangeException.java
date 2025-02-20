@@ -1,6 +1,6 @@
-package exceptions;
+package mg.itu.prom16.exceptions;
 
-import annotations.Range;
+import mg.itu.prom16.annotations.Range;
 
 public class RangeException extends Exception {
     public RangeException(String paramName,Range range) {

@@ -1,4 +1,4 @@
-package object;
+package mg.itu.prom16.object;
 
 import java.util.HashMap;
 

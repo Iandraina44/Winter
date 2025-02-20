@@ -1,4 +1,4 @@
-package controller;
+package mg.itu.prom16.controller;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -16,29 +16,36 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
-import annotations.Controller;
-import annotations.RestAPI;
-import exceptions.ValidationException;
-import object.ModelView;
-import object.ResourceNotFound;
-import object.VerbMethod;
-import utils.Mapping;
-import utils.Utils;
+import mg.itu.prom16.annotations.Auth;
+import mg.itu.prom16.annotations.Controller;
+import mg.itu.prom16.annotations.RestAPI;
+import mg.itu.prom16.exceptions.ValidationException;
+import mg.itu.prom16.object.ModelView;
+import mg.itu.prom16.object.ResourceNotFound;
+import mg.itu.prom16.object.VerbMethod;
+import mg.itu.prom16.utils.Mapping;
+import mg.itu.prom16.utils.Utils;
 
 @MultipartConfig
 public class FrontController extends HttpServlet {
     private List<String> controllers;
     private HashMap<String, Mapping> map;
+    private String authVarName;
+    private String authRoleVarName;
 
     @Override
     public void init() throws ServletException {
         String packageToScan = this.getInitParameter("package_name");
-        try {
-            this.controllers = new Utils().getAllClassesStringAnnotation(packageToScan, Controller.class);
-            this.map = new Utils().scanControllersMethods(this.controllers);
-        } catch (Exception e) {
-            throw new ServletException(e);
+        if (packageToScan != null) {
+            try {
+                this.controllers = new Utils().getAllClassesStringAnnotation(packageToScan, Controller.class);
+                this.map = new Utils().scanControllersMethods(this.controllers);
+            } catch (Exception e) {
+                throw new ServletException(e);
+            }
         }
+        this.authVarName = this.getInitParameter("auth_name");
+        this.authRoleVarName = this.getInitParameter("auth_role_name");
     }
 
     @Override
@@ -64,6 +71,18 @@ public class FrontController extends HttpServlet {
             Map<String, String[]> params = request.getParameterMap();
             // Recherche methode
             VerbMethod meth = u.searchVerbMethod(request, map, path);
+            if (meth.getMethode().isAnnotationPresent(Auth.class)) {
+                if (request.getSession().getAttribute(this.authVarName) == null) {
+                    throw new ResourceNotFound("Vous n'etes pas connecte");
+                }
+                if (!meth.getMethode().getAnnotation(Auth.class).authRole().equals("")) {
+                    if (request.getSession().getAttribute(this.authRoleVarName) == null ||
+                            !request.getSession().getAttribute(this.authRoleVarName)
+                                    .equals(meth.getMethode().getAnnotation(Auth.class).authRole())) {
+                        throw new ResourceNotFound("Vous n'avez pas le role necessaire");
+                    }
+                }
+            }
             // Execution methode
             res = u.execute(request, meth, map, path, params);
             /* verification si methode est rest */

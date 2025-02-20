@@ -1,4 +1,4 @@
-package utils;
+package mg.itu.prom16.utils;
 
 import java.util.HashMap;
 import java.util.List;

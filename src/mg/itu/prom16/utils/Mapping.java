@@ -1,8 +1,8 @@
-package utils;
+package mg.itu.prom16.utils;
 import java.util.Objects;
 import java.util.Set;
 
-import object.VerbMethod;
+import mg.itu.prom16.object.VerbMethod;
 
 public class Mapping {
     String className;

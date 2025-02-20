@@ -1,4 +1,4 @@
-package utils;
+package mg.itu.prom16.utils;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -15,25 +15,26 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import jakarta.servlet.http.HttpServletRequest;
-import annotations.Controller;
-import annotations.ErrorUrl;
-import annotations.FieldParam;
-import annotations.Get;
-import annotations.Numeric;
-import annotations.ObjectParam;
-import annotations.Param;
-import annotations.Post;
-import annotations.Range;
-import annotations.RestAPI;
-import annotations.UrlMapping;
-import exceptions.NumericException;
-import exceptions.RangeException;
-import exceptions.ValidationException;
-import object.ModelView;
-import object.MyMultiPart;
-import object.MySession;
-import object.ResourceNotFound;
-import object.VerbMethod;
+import mg.itu.prom16.annotations.Auth;
+import mg.itu.prom16.annotations.Controller;
+import mg.itu.prom16.annotations.ErrorUrl;
+import mg.itu.prom16.annotations.FieldParam;
+import mg.itu.prom16.annotations.Get;
+import mg.itu.prom16.annotations.Numeric;
+import mg.itu.prom16.annotations.ObjectParam;
+import mg.itu.prom16.annotations.Param;
+import mg.itu.prom16.annotations.Post;
+import mg.itu.prom16.annotations.Range;
+import mg.itu.prom16.annotations.RestAPI;
+import mg.itu.prom16.annotations.UrlMapping;
+import mg.itu.prom16.exceptions.NumericException;
+import mg.itu.prom16.exceptions.RangeException;
+import mg.itu.prom16.exceptions.ValidationException;
+import mg.itu.prom16.object.ModelView;
+import mg.itu.prom16.object.MyMultiPart;
+import mg.itu.prom16.object.MySession;
+import mg.itu.prom16.object.ResourceNotFound;
+import mg.itu.prom16.object.VerbMethod;
 
 public class Utils {
     static public String getCatMethodName(String attributeName) {

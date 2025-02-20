@@ -1,11 +1,11 @@
-package object;
+package mg.itu.prom16.object;
 
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import utils.Mapping;
+import mg.itu.prom16.utils.Mapping;
 
 public class VerbMethod {
     String verb;
