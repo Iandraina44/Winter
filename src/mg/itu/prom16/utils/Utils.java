@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 
 import jakarta.servlet.http.HttpServletRequest;
 import mg.itu.prom16.annotations.Auth;
+import mg.itu.prom16.annotations.AuthC;
 import mg.itu.prom16.annotations.Controller;
 import mg.itu.prom16.annotations.ErrorUrl;
 import mg.itu.prom16.annotations.FieldParam;
@@ -149,8 +150,9 @@ public class Utils {
     public String getURIWithoutContextPath(HttpServletRequest request) {
         return request.getRequestURI().substring(request.getContextPath().length());
     }
+
     public List<String> validateField(Map<String, String[]> params, Field field, String key) {
-        List<String> errors=new ArrayList<>();
+        List<String> errors = new ArrayList<>();
         // Check if the field has a Numeric annotation
         if (field.isAnnotationPresent(Numeric.class)) {
             if (params.get(key) != null) {
@@ -177,8 +179,6 @@ public class Utils {
         }
         return errors;
     }
-    
-    
 
     public void processObject(Map<String, String[]> params, Parameter param, List<Object> ls) throws Exception {
         Map<String, List<String>> errorMap = new HashMap<>();
@@ -191,18 +191,18 @@ public class Utils {
         /// prendre les attributs
         Field[] f = c.getDeclaredFields();
         /// ATOMBOKA eto sprint 13
-    /// validation des fields 
-        for(Field field:f){
+        /// validation des fields
+        for (Field field : f) {
             String attributObjet = null;
             attributObjet = field.isAnnotationPresent(FieldParam.class)
                     ? field.getAnnotation(FieldParam.class).paramName()
                     : field.getName();
             key = nomObjet + "." + attributObjet;
-            if(validateField(params, field, key).size()>0){
+            if (validateField(params, field, key).size() > 0) {
                 errorMap.put(key, validateField(params, field, key));
             }
         }
-        if(!errorMap.isEmpty()){
+        if (!errorMap.isEmpty()) {
             throw new ValidationException(errorMap);
         }
         for (Field field : f) {
@@ -267,9 +267,11 @@ public class Utils {
         return ls.toArray();
     }
 
-    public VerbMethod searchVerbMethod(HttpServletRequest req, HashMap<String, Mapping> map, String path)
+    public VerbMethod searchVerbMethod(HttpServletRequest req, HashMap<String, Mapping> map, String path,
+            String authVar, String authRole)
             throws Exception {
         if (map.containsKey(path)) {
+            boolean did=verifAuthController(map.get(path), req, authVar, authRole);
             VerbMethod[] verb_meths = (VerbMethod[]) map.get(path).getVerbmethods().toArray(new VerbMethod[0]);
             VerbMethod m = null;
             for (VerbMethod verbMethod : verb_meths) {
@@ -281,11 +283,15 @@ public class Utils {
             if (m == null) {
                 throw new ResourceNotFound("L'url ne supporte pas la méthode " + req.getMethod());
             }
+            if(!did){
+                verifAuthMethode(m, req, authVar, authRole);
+            }
             return m;
         } else {
             throw new Exception("Aucune méthode associé a cette url");
         }
     }
+
     public Object execute(HttpServletRequest req, VerbMethod verbmethode, HashMap<String, Mapping> map, String path,
             Map<String, String[]> params)
             throws Exception {
@@ -302,20 +308,19 @@ public class Utils {
                             new MySession(req.getSession()));
                 }
             }
-            
+
             Object[] args = null;
-            try{
+            try {
                 args = this.getArgs(req, params, methode);
-            }
-            catch(ValidationException ve){
-                if(methode.isAnnotationPresent(ErrorUrl.class)){
+            } catch (ValidationException ve) {
+                if (methode.isAnnotationPresent(ErrorUrl.class)) {
                     ve.setErrorUrl(methode.getAnnotation(ErrorUrl.class).url());
                     ve.setErrorMethod(methode.getAnnotation(ErrorUrl.class).method());
                 }
                 ve.setParamsBeforeError(params);
                 throw ve;
             }
-            res = methode.invoke(appelant,args);
+            res = methode.invoke(appelant, args);
 
         } else {
             throw new Exception(
@@ -323,6 +328,41 @@ public class Utils {
                             + verbmethode.getVerb());
         }
         return res;
-
     }
+
+    public void verifAuthMethode(VerbMethod meth, HttpServletRequest request, String authVarName,
+            String authRoleVarName) throws ResourceNotFound {
+        if (meth.getMethode().isAnnotationPresent(Auth.class)) {
+            if (request.getSession().getAttribute(authVarName) == null) {
+                throw new ResourceNotFound("Vous n'etes pas connecte");
+            }
+            if (!meth.getMethode().getAnnotation(Auth.class).authRole().equals("")) {
+                if (request.getSession().getAttribute(authRoleVarName) == null ||
+                        !request.getSession().getAttribute(authRoleVarName)
+                                .equals(meth.getMethode().getAnnotation(Auth.class).authRole())) {
+                    throw new ResourceNotFound("Vous n'avez pas le role necessaire");
+                }
+            }
+        }
+    }
+
+    public boolean verifAuthController(Mapping m, HttpServletRequest request, String authVarName, String authRoleVarName)
+            throws ResourceNotFound, ClassNotFoundException {
+        Class<?> meth = Class.forName(m.getClassName());
+        if (meth.isAnnotationPresent(AuthC.class)) {
+            if (request.getSession().getAttribute(authVarName) == null) {
+                throw new ResourceNotFound("Vous n'etes pas connecte");
+            }
+            if (!meth.getAnnotation(AuthC.class).authRole().equals("")) {
+                if (request.getSession().getAttribute(authRoleVarName) == null ||
+                        !request.getSession().getAttribute(authRoleVarName)
+                                .equals(meth.getAnnotation(AuthC.class).authRole())) {
+                    throw new ResourceNotFound("Vous n'avez pas le role necessaire");
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
 }

@@ -3,6 +3,7 @@ package mg.itu.prom16.controller;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
+import java.net.http.HttpRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import mg.itu.prom16.annotations.Auth;
+import mg.itu.prom16.annotations.AuthC;
 import mg.itu.prom16.annotations.Controller;
 import mg.itu.prom16.annotations.RestAPI;
 import mg.itu.prom16.exceptions.ValidationException;
@@ -69,20 +71,8 @@ public class FrontController extends HttpServlet {
         try {
             // Prendre les parametres
             Map<String, String[]> params = request.getParameterMap();
-            // Recherche methode
-            VerbMethod meth = u.searchVerbMethod(request, map, path);
-            if (meth.getMethode().isAnnotationPresent(Auth.class)) {
-                if (request.getSession().getAttribute(this.authVarName) == null) {
-                    throw new ResourceNotFound("Vous n'etes pas connecte");
-                }
-                if (!meth.getMethode().getAnnotation(Auth.class).authRole().equals("")) {
-                    if (request.getSession().getAttribute(this.authRoleVarName) == null ||
-                            !request.getSession().getAttribute(this.authRoleVarName)
-                                    .equals(meth.getMethode().getAnnotation(Auth.class).authRole())) {
-                        throw new ResourceNotFound("Vous n'avez pas le role necessaire");
-                    }
-                }
-            }
+            // Recherche methode et verification auth
+            VerbMethod meth = u.searchVerbMethod(request, map, path,this.authVarName,this.authRoleVarName);
             // Execution methode
             res = u.execute(request, meth, map, path, params);
             /* verification si methode est rest */
@@ -158,5 +148,4 @@ public class FrontController extends HttpServlet {
             e.printStackTrace();
         }
     }
-
 }
