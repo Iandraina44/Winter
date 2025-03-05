@@ -1,38 +1,37 @@
-tutorial to use the framework:
+# winter-framework
+Framework comme Spring 
 
--ajouter le Winter.jar dans le lib 
--creer web.xml
--mapper un servlet comme suis 
-<servlet>
-    <servlet-name>FrontController</servlet-name>
-    <servlet-class>controller.FrontController</servlet-class>
-    <init-param>
-        <param-name>package_name</param-name>
-        <param-value>wcontroller</param-value>
-    </init-param>
-</servlet>
-<servlet-mapping>
-    <servlet-name>FrontController</servlet-name>
-    <url-pattern>/</url-pattern>
-</servlet-mapping>
+## Paramétrage :
 
--creer un classe dans un package wcontroller et mapper @Controller
-importer les calsse annotations
--mapper les methode souhaitez avec @GetMapping retoune soit ModelView soit String
-    ==>cas MOdelandView creet une fonction qui retoune model and view 
-        utiliser add pour ajouter un objet au mode and view  
-        utiliser seturl pour configurer l url ou sera dirige le mode and view
-    ==>cas String 
-        le resultat de la methode sera affivhe dams le navigateur
+    - Dans le web.xml de votre projet , définir le servlet FrontController , avec la classe mg.itu.prom16.controller.FrontController
+    - Définir son init-param avec le param-name package_name et avec le param-value qui sera le package ou se trouvera vos controllers.
+    - Définir l'urlmapping du FrontController , qui sera /
+	- Définir aussi dans le FrontController , le nom de la variable d'authorisation dans la session , avec comme param-name auth_name et si on veut gérer les role on ajoute param-name auth_role_name
 
+### Exemple :
+    <servlet>
+		<servlet-name>FrontController</servlet-name>
+		<servlet-class>mg.itu.prom16.controller.FrontController</servlet-class>
+		<init-param>
+			<param-name>package_name</param-name>
+			<param-value>wcontrollers</param-value>
+			<description>Package ou se trouve tous les controllers</description>
+		</init-param>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>FrontController</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
 
--les attributs de fonction doivent etre mappe avec requestParam(value="nom de l attribut") 
-Rajouer -parameters dans la compilation pour eviter de necessairement mettre un mapping
+## Fonctionnalités :
 
-
--utilisation de session :
-    ==>mettre la classe mysession comme attribut de la classe controller ne pas l initilaliser
-    ==>utiliser les methodede mysession pour acceder a HTTPsession en back:
-        -add()
-        -get()
-        -delete()
+    - Annotations de Controllers avec @Controller
+    - Annotations de méthodes avec @GetMapping(String url)
+    - Pour prendre des données depuis une vue , utiliser @Param sur les parametres de la fonction
+    de votre controller ou bien par convention , matcher les params de la requete avec 
+    les noms des parametres
+	- Les données depuis une vue peuvent être aussi prises en tant qu'objet.
+		-Utiliser @ObjectParam sur l'objet en question(ses attributs doivent avoir le même nom que les parametres ,
+		ou bien annoter avec @FieldParam)
+	- Utiliser l'annotation @RestAPI sur une méthode pour en faire un api rest.
+    
