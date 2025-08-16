@@ -271,7 +271,7 @@ public class Utils {
             }
 
             // fix tableau
-            if (typage.isArray()) {
+            else if (typage.isArray()) {
                 processArray(typage, key, param, params, ls);
             } else if (!typage.isPrimitive() && !typage.equals(String.class)) {
                 this.processObject(params, param, ls);
