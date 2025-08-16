@@ -7,7 +7,7 @@ set "lib=%root%\lib"
 
 set "temp=%root%\temp"
 set "src=%root%\src"
-set "target_dir=D:\ITU\SPRINTS\DeployWinter\lib"
+set "target_dir=D:\ITU\SPRINTS\avion\lib"
 
 set "jar_name=Winter"
 
